@@ -1,64 +1,80 @@
-import csv
+# * In this challenge, you are tasked with creating a Python script for analyzing the financial records of your company. You will give a set of financial data called [budget_data.csv](PyBank/Resources/budget_data.csv). The dataset is composed of two columns: `Date` and `Profit/Losses`. (Thankfully, your company has rather lax standards for accounting so the records are simple.)
+
+# * Your task is to create a Python script that analyzes the records to calculate each of the following:
+
+#   * The total number of months included in the dataset
+#   * The net total amount of "Profit/Losses" over the entire period
+#   * The average of the changes in "Profit/Losses" over the entire period
+#   * The greatest increase in profits (date and amount) over the entire period
+#   * The greatest decrease in losses (date and amount) over the entire period
+
+#   Financial Analysis
+#   ----------------------------
+#   Total Months: 86
+#   Total: $38382578
+#   Average  Change: $-2315.12
+#   Greatest Increase in Profits: Feb-2012 ($1926159)
+#   Greatest Decrease in Profits: Sep-2013 ($-2196167)
+
+# * In addition, your final script should both print the analysis to the terminal and export a text file with the results.
 import os
+import csv
 
-# choose 1 or 2
-file_num = 2
+# read csv file, count the number of non-header rows and then put values in 2 lists
+Months = 0
+Profits = []
+Dates = []
 
-# create file path and save as file
-file = os.path.join('resources', 'budget_data.csv') #+ str(file_num) +'.csv')
+with open("../Resources/budget_data.csv", newline='') as csvfile:
 
-#emply lists for month and revenue data
-months = []
-revenue = []
+    csvreader = csv.reader(csvfile, delimiter=',')
+    next(csvreader, None)
 
-#read csv and parse data into lists
-#revenue list will be list of integers
-with open(file, 'r') as csvfile:
-    csvread = csv.reader(csvfile)
+    for row in csvreader:
+        Months += 1
+        Dates.append(row[0])
+        Profits.append(int(row[1]))
+
+TotalProfits = Profits[0]  #put the first mo profit into total profit)
+TotaledChanges = 0
+BiggestInc = 0
+BiggestDec = 0
+BiggestIncDate = 0
+BiggestDecDate = 0
+CurrentChange = 0
+
+#Start at 1 rather than 0 so we can calculate the change in profit below
+for n in range (1, Months):
+    #Add current mo. to total profits
+    TotalProfits += Profits[n]
     
-    next(csvread, None)
+    #Calculate the change between this month and the month before it and then add it to the totaled changes
+    CurrentChange = Profits[n] - Profits[n-1]
+    TotaledChanges += CurrentChange
+    
+#Check if the current change was the biggest change and if so, make it the biggest increase or decrease amount and date
+    if CurrentChange > BiggestInc:
+        BiggestInc = CurrentChange
+        BiggestIncDate = Dates[n]
+    elif CurrentChange < BiggestDec:
+        BiggestDec = CurrentChange
+        BiggestDecDate = Dates[n]
 
-    for row in csvread:
-        months.append(row[0])
-        revenue.append(int(row[1]))
+#Print to screen
+print("Financial Analysis")
+print("----------------------------")
+print(f"Months: {Months}")
+print(f"Total Profits: ${(TotalProfits):.2f}")
+print(f"Average Change: ${(TotaledChanges/(Months - 1)):.2f}")
+print(f"Greatest Increase in Profits: {BiggestIncDate} (${(BiggestInc):.2f})")
+print(f"Greatest Decrease in Profits: {BiggestDecDate} (${(BiggestDec):.2f})")
 
-#find total months
-total_months = len(months)
-#print (total_months)
-
-#create greatest increase, decrease variables and set them equal to the first revenue entry
-#set total revenue = 0 
-greatest_inc = revenue[0]
-greatest_dec = revenue[0]
-total_revenue = 0
-
-#loop through revenue indices and compare # to find greatest inc and dec
-#also add each revenue to total revenue
-for r in range(len(revenue)):
-    if revenue[r] >= greatest_inc:
-        greatest_inc = revenue[r]
-        great_inc_month = months[r]
-    elif revenue[r] <= greatest_dec:
-        greatest_dec = revenue[r]
-        great_dec_month = months[r]
-    total_revenue += revenue[r]
-
-#calculate average_change
-average_change = round(total_revenue/total_months, 2)
-
-#sets path for output file
-output_dest = os.path.join('Output','pybank_output_' + str(file_num) + '.txt')
-
-# opens the output destination in write mode and prints the summary
-with open(output_dest, 'w') as writefile:
-    writefile.writelines('Financial Analysis\n')
-    writefile.writelines('----------------------------' + '\n')
-    writefile.writelines('Total Months: ' + str(total_months) + '\n')
-    writefile.writelines('Total Revenue: $' + str(total_revenue) + '\n')
-    writefile.writelines('Average Revenue Change: $' + str(average_change) + '\n')
-    writefile.writelines('Greatest Increase in Revenue: ' + great_inc_month + ' ($' + str(greatest_inc) + ')'+ '\n')
-    writefile.writelines('Greatest Decrease in Revenue: ' + great_dec_month + ' ($' + str(greatest_dec) + ')')
-
-#opens the output file in r mode and prints to terminal
-with open(output_dest, 'r') as readfile:
-    print(readfile.read())
+#print output results to txt file
+with open("Financial Analysis.txt","w") as txtfile:
+    txtfile.write("Financial Analysis\n")
+    txtfile.write("----------------------------\n")
+    txtfile.write(f"Months: {Months}\n")
+    txtfile.write(f"Total Profits: ${(TotalProfits):.2f}\n")
+    txtfile.write(f"Average Change: ${(TotaledChanges/(Months - 1)):.2f}\n")
+    txtfile.write(f"Greatest Increase in Profits: {BiggestIncDate} (${(BiggestInc):.2f})\n")
+    txtfile.write(f"Greatest Decrease in Profits: {BiggestDecDate} (${(BiggestDec):.2f})\n")
